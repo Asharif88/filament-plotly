@@ -16,7 +16,7 @@ trait HasHeader
     /**
      * Retrieves the heading used in the class.
      */
-    protected function getHeading(): null|string|Htmlable|View
+    protected function getHeading(): null | string | Htmlable | View
     {
         return static::$heading;
     }
@@ -24,7 +24,7 @@ trait HasHeader
     /**
      * Retrieves the subheading used in the class.
      */
-    protected function getSubheading(): null|string|Htmlable|View
+    protected function getSubheading(): null | string | Htmlable | View
     {
         return static::$subheading;
     }

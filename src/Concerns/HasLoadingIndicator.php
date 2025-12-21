@@ -11,7 +11,7 @@ trait HasLoadingIndicator
     /**
      * Retrieves the loading indicator used in the class.
      */
-    protected function getLoadingIndicator(): null|string|View
+    protected function getLoadingIndicator(): null | string | View
     {
         return static::$loadingIndicator;
     }

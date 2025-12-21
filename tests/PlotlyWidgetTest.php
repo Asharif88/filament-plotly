@@ -24,10 +24,10 @@ final class PlotlyWidgetTest extends TestCase
                 return [
                     'data' => [
                         [
-                            'x'      => [1, 2, 3, 4, 5],
-                            'y'      => [10, 15, 13, 17, 22],
-                            'type'   => 'scatter',
-                            'mode'   => 'lines+markers',
+                            'x' => [1, 2, 3, 4, 5],
+                            'y' => [10, 15, 13, 17, 22],
+                            'type' => 'scatter',
+                            'mode' => 'lines+markers',
                             'marker' => ['color' => 'red'],
                         ],
                     ],
@@ -87,12 +87,12 @@ final class PlotlyWidgetTest extends TestCase
     public static function widgetPropertyProvider(): array
     {
         return [
-            'Heading'           => ['heading'],
-            'Content Height'    => ['contentHeight'],
-            'Footer'            => ['footer'],
+            'Heading' => ['heading'],
+            'Content Height' => ['contentHeight'],
+            'Footer' => ['footer'],
             'Loading Indicator' => ['loadingIndicator'],
-            'Defer Loading'     => ['deferLoading'],
-            'Ready to load'     => ['readyToLoad'],
+            'Defer Loading' => ['deferLoading'],
+            'Ready to load' => ['readyToLoad'],
         ];
     }
 
@@ -102,16 +102,16 @@ final class PlotlyWidgetTest extends TestCase
     public static function widgetMethodProvider(): array
     {
         return [
-            'Get Heading'           => ['getHeading'],
-            'Get Content Height'    => ['getContentHeight'],
-            'Get Footer'            => ['getFooter'],
+            'Get Heading' => ['getHeading'],
+            'Get Content Height' => ['getContentHeight'],
+            'Get Footer' => ['getFooter'],
             'Get Loading Indicator' => ['getLoadingIndicator'],
-            'Submit Filters'        => ['submitFiltersForm'],
-            'Reset Filters'         => ['resetFiltersForm'],
-            'Get Chart Data'        => ['getChartData'],
-            'Get Chart Layout'      => ['getChartLayout'],
-            'Get Chart Config'      => ['getChartConfig'],
-            'Update options'        => ['updateOptions'],
+            'Submit Filters' => ['submitFiltersForm'],
+            'Reset Filters' => ['resetFiltersForm'],
+            'Get Chart Data' => ['getChartData'],
+            'Get Chart Layout' => ['getChartLayout'],
+            'Get Chart Config' => ['getChartConfig'],
+            'Update options' => ['updateOptions'],
         ];
     }
 }

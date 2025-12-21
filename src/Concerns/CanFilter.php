@@ -9,7 +9,7 @@ trait CanFilter
 {
     use InteractsWithSchemas;
 
-    protected static Width|string $filterFormWidth = Width::ExtraSmall;
+    protected static Width | string $filterFormWidth = Width::ExtraSmall;
 
     public ?string $filter = null;
 
@@ -66,7 +66,7 @@ trait CanFilter
      *
      * @return Width | string The value of the $filterFormWidth property, which is either a MaxWidth instance or a string.
      */
-    protected function getFilterFormWidth(): Width|string
+    protected function getFilterFormWidth(): Width | string
     {
         return static::$filterFormWidth;
     }

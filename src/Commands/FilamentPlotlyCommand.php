@@ -81,7 +81,7 @@ class FilamentPlotlyCommand extends Command
 
         if (class_exists(Panel::class)) {
 
-            $panels    = Filament::getPanels();
+            $panels = Filament::getPanels();
             $namespace = config('livewire.class_namespace');
 
             /** @var ?Panel $panel */
@@ -97,17 +97,17 @@ class FilamentPlotlyCommand extends Command
             )] ?? null;
         }
 
-        $path              = null;
-        $namespace         = null;
-        $resourcePath      = null;
+        $path = null;
+        $namespace = null;
+        $resourcePath = null;
         $resourceNamespace = null;
 
         if (! $panel) {
             $namespace = config('livewire.class_namespace');
-            $path      = app_path((string) str($namespace)->after('App\\')->replace('\\', '/'));
+            $path = app_path((string) str($namespace)->after('App\\')->replace('\\', '/'));
         } elseif ($resource === null) {
             $widgetDirectories = $panel->getWidgetDirectories();
-            $widgetNamespaces  = $panel->getWidgetNamespaces();
+            $widgetNamespaces = $panel->getWidgetNamespaces();
 
             $namespace = (count($widgetNamespaces) > 1) ?
                 select(
@@ -120,7 +120,7 @@ class FilamentPlotlyCommand extends Command
                 (Arr::first($widgetDirectories) ?? app_path('Filament/Widgets/'));
         } else {
             $resourceDirectories = $panel->getResourceDirectories();
-            $resourceNamespaces  = $panel->getResourceNamespaces();
+            $resourceNamespaces = $panel->getResourceNamespaces();
 
             $resourceNamespace = (count($resourceNamespaces) > 1) ?
                 select(
@@ -136,7 +136,7 @@ class FilamentPlotlyCommand extends Command
         if ($path) {
             $this->makeDirectory($path);
             $contents = $this->getSourceFile($namespace, $widget);
-            $file     = $path . '/' . $widget . '.php';
+            $file = $path . '/' . $widget . '.php';
             if ($this->files->exists($file)) {
                 $this->error("File : {$file} already exits!");
                 exit();
@@ -176,7 +176,7 @@ class FilamentPlotlyCommand extends Command
                 }
             } else {
                 // Guess standard layout: Resources/{PluralResourceName}/Widgets
-                $base   = (string) str($resource)->afterLast('\\')->beforeLast('Resource');
+                $base = (string) str($resource)->afterLast('\\')->beforeLast('Resource');
                 $folder = (string) Str::of($base)->plural();
 
                 $widgetsNamespace = rtrim($resourceNamespace, '\\') . '\\' . $folder . '\\Widgets';
@@ -231,7 +231,7 @@ class FilamentPlotlyCommand extends Command
         $path = Str::of(__DIR__);
 
         $path = match (PHP_OS_FAMILY) {
-            default   => $path->replace('src/Commands', 'stubs/'),
+            default => $path->replace('src/Commands', 'stubs/'),
             'Windows' => $path->replace('src\Commands', 'stubs\\')
         };
 
@@ -245,9 +245,9 @@ class FilamentPlotlyCommand extends Command
     public function getStubVariables($namespace, $widget): array
     {
         return [
-            'NAMESPACE'  => $namespace,
+            'NAMESPACE' => $namespace,
             'CLASS_NAME' => $widget,
-            'CHART_ID'   => Str::of($widget)->camel(),
+            'CHART_ID' => Str::of($widget)->camel(),
         ];
     }
 

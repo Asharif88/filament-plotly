@@ -43,7 +43,7 @@ class PlotlyWidget extends Widget implements HasSchemas
             $this->getFiltersSchema()->fill();
         }
 
-        $this->chartData   = $this->getChartData();
+        $this->chartData = $this->getChartData();
         $this->chartConfig = $this->getChartConfig();
         $this->chartLayout = $this->getChartLayout();
 

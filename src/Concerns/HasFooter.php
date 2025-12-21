@@ -9,7 +9,7 @@ trait HasFooter
 {
     protected static ?string $footer = null;
 
-    protected function getFooter(): null|string|Htmlable|View
+    protected function getFooter(): null | string | Htmlable | View
     {
         return static::$footer;
     }
