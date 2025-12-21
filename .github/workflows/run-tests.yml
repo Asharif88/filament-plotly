@@ -26,7 +26,7 @@ jobs:
             testbench: 9.*
             carbon: 3.*
             collision: 8.*
-            phpunit: 12.*
+            phpunit: 11.*
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
