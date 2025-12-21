@@ -7,6 +7,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 final class PlotlyWidgetTest extends TestCase
 {
+    public static $latestResponse = null;
+
     protected function setUp(): void
     {
         parent::setUp();
