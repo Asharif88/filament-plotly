@@ -2,7 +2,7 @@ name: run-tests
 
 on:
   push:
-    branches: [main,testDependencies]
+    branches: [main,dev]
   pull_request:
     branches: [main]
 
