@@ -1,11 +1,14 @@
 includes:
     - phpstan-baseline.neon
+    - vendor/larastan/larastan/extension.neon
 
 parameters:
     level: 4
     paths:
         - src
-        - resources
         - config
     tmpDir: build/phpstan
-
+    checkOctaneCompatibility: true
+    checkModelProperties: true
+    ignoreErrors:
+        - '#Access to an undefined property Asharif88\\FilamentPlotly\\Widgets\\PlotlyWidget::\$form.#'
