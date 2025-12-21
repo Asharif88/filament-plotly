@@ -16,6 +16,8 @@ class TestCase extends Orchestra
 {
     protected function setUp(): void
     {
+        static::$latestResponse = null;
+
         parent::setUp();
     }
 
