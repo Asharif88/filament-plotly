@@ -9,10 +9,9 @@ class Header extends Component
     public function __construct(
         public $heading,
         public $subheading,
-        //        public $filters,
-        //        public $indicatorsCount,
+        public $filters,
         public $width,
-        //        public $filterFormAccessible
+        public $filterFormAccessible
     ) {}
 
     /**

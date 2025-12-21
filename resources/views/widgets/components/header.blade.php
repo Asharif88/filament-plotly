@@ -1,9 +1,7 @@
-{{--@props(['heading', 'subheading', 'filters', 'indicatorsCount', 'width', 'filterFormAccessible'])--}}
-@props(['heading', 'subheading', 'width'])
+@props(['heading', 'subheading', 'width', 'filters', 'filterFormAccessible'])
 <div class="filament-plotly-header">
-	@if ($heading || $subheading )
+	@if ($heading || $subheading || $filters || $filterFormAccessible)
 		<div class="sm:flex justify-between gap-4 py-2 relative">
-
 			<div>
 				@if ($heading)
 					<div class="filament-plotly-heading text-base font-semibold leading-6">
@@ -18,30 +16,29 @@
 				@endif
 			</div>
 
-{{--			<div>--}}
-{{--				@if ($filters)--}}
-{{--					<select wire:model.live="filter" @class([--}}
-{{--                        'echarts-single-filter w-full text-gray-900 border-gray-300 block h-10 transition duration-75 rounded-lg shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-inset focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:border-primary-500',--}}
-{{--                    ]) wire:loading.class="animate-pulse">--}}
-{{--						@foreach ($filters as $value => $label)--}}
-{{--							<option value="{{ $value }}">--}}
-{{--								{{ $label }}--}}
-{{--							</option>--}}
-{{--						@endforeach--}}
-{{--					</select>--}}
-{{--				@endif--}}
-{{--			</div>--}}
+			<div>
+				@if ($filters)
+					<select wire:model.live="filter" @class([
+                        'plotly-single-filter w-full text-gray-900 border-gray-300 block h-10 transition duration-75 rounded-lg shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-inset focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:border-primary-500',
+                    ]) wire:loading.class="animate-pulse">
+						@foreach ($filters as $value => $label)
+							<option value="{{ $value }}">
+								{{ $label }}
+							</option>
+						@endforeach
+					</select>
+				@endif
+			</div>
 
-{{--			@if ($filterFormAccessible)--}}
-{{--				<div>--}}
+			@if ($this->filterFormAccessible)
+			<div class="123">
 
-{{--					<x-filament-echarts::filter-form :indicatorsCount=$indicatorsCount :width=$width>--}}
-{{--						{{ $filterForm }}--}}
-{{--					</x-filament-echarts::filter-form>--}}
+				<x-filament-plotly::filter-form :width="$width">
+					{{ $filterForm }}
+				</x-filament-plotly::filter-form>
 
-{{--				</div>--}}
-{{--			@endif--}}
-
+			</div>
+			@endif
 		</div>
 	@endif
 </div>

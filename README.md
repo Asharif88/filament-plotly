@@ -1,13 +1,29 @@
-# Inspired by https://filamentphp.com/plugins/leandrocfe-apex-charts & https://filamentphp.com/plugins/elemind-echarts this plugin delivers plotly.js integration for Filament.
+# Filament Plotly.js Widget
+Inspired by [Leandro Ferreira’s Apex Charts plugin](https://filamentphp.com/plugins/leandrocfe-apex-charts) & [Elemind's Echarts plugin](https://filamentphp.com/plugins/elemind-echarts) this plugin delivers plotly.js integration for Filament.
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/asharif88/filament-plotly.svg?style=flat-square)](https://packagist.org/packages/asharif88/filament-plotly)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/asharif88/filament-plotly/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/asharif88/filament-plotly/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/asharif88/filament-plotly/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/asharif88/filament-plotly/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/asharif88/filament-plotly.svg?style=flat-square)](https://packagist.org/packages/asharif88/filament-plotly)
 
-
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+## Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Setting a widget title](#setting-a-widget-title)
+  - [Setting a widget subheading](#setting-a-widget-subheading)
+  - [Setting a chart id](#setting-a-chart-id)
+  - [Making a widget collapsible](#making-a-widget-collapsible)
+  - [Setting a widget height](#setting-a-widget-height)
+  - [Setting a widget footer](#setting-a-widget-footer)
+  - [Hiding header content](#hiding-header-content)
+  - [Filtering chart data](#filtering-chart-data)
+  - [Live updating (polling)](#live-updating-polling)
+  - [Defer loading](#defer-loading)
+  - [Loading indicator](#loading-indicator)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [Credits](#credits)
+- [License](#license)
 
 ## Installation
 
@@ -17,18 +33,382 @@ You can install the package via composer:
 composer require asharif88/filament-plotly
 ```
 
-You can publish and run the migrations with:
+Register the plugin for the Filament Panels you want to use:
 
-```bash
-php artisan vendor:publish --tag="filament-plotly-migrations"
-php artisan migrate
+```php
+use Asharif88\FilamentPlotly\FilamentPlotlyPlugin;
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugins([
+            FilamentPlotlyPlugin::make()
+        ]);
+}
 ```
 
-You can publish the config file with:
+## Usage
+
+Start by creating a widget with the command:
 
 ```bash
-php artisan vendor:publish --tag="filament-plotly-config"
+php artisan make:filament-plotly BlogPostsChart
 ```
+
+The plugin uses the [Plotly.react](https://plotly.com/javascript/plotlyjs-function-reference/#plotlyreact) function to render charts.
+This function takes in the chart `data`, `layout` and `config` as parameters.
+
+You need to implement the `getChartData()` method to return an array with `data`, `layout` and `config` keys:
+```php
+use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
+
+class BlogPostsChart extends PlotlyWidget 
+{
+    protected function getChartData(): array
+    {
+        return [
+            'data' => [
+                [
+                    'x' => ['2025-07-01', '2025-07-02', '2025-07-03', '2025-07-04', '2025-07-05'],
+                    'y' => [10, 15, 13, 17, 22],
+                    'type' => 'scatter',
+                    'mode' => 'lines+markers',
+                    'name' => 'Blog Posts',
+                ],
+            ],
+            'layout' => [
+                'title' => 'Blog Posts Over Time',
+                'xaxis' => [
+                    'title' => 'Date',
+                ],
+                'yaxis' => [
+                    'title' => 'Number of Posts',
+                ],
+            ],
+            'config' => [
+                'responsive' => true,
+            ],
+        ];
+    }
+}
+```
+
+Alternatively, you can set the `data`, `layout` and `config` separately by implementing the following methods:
+
+```php
+protected function getChartData(): array
+{
+    return [
+        [
+            'x' => ['2025-07-01', '2025-07-02', '2025-07-03', '2025-07-04', '2025-07-05'],
+            'y' => [10, 15, 13, 17, 22],
+            'type' => 'scatter',
+            'mode' => 'lines+markers',
+            'name' => 'Blog Posts',
+        ],
+    ]; 
+}
+
+protected function getChartLayout(): array
+{
+    return [
+        'title' => 'Blog Posts Over Time',
+        'xaxis' => [
+            'title' => 'Date',
+        ],
+        'yaxis' => [
+            'title' => 'Number of Posts',
+        ],
+    ];
+}
+
+protected function getChartConfig(): array
+{
+    return [
+        'responsive' => true,
+    ];
+}
+```
+
+## Setting a widget title
+
+You may set a widget title:
+
+```php
+protected static ?string $heading = 'Blog Posts Chart';
+```
+
+Optionally, you can use the `getHeading()` method.
+
+## Setting a widget subheading
+
+You may set a widget subheading:
+
+```php
+protected static ?string $subheading = 'This is a subheading';
+```
+
+Optionally, you can use the `getSubheading()` method.
+
+## Setting a chart id
+
+You may set a chart id:
+
+```php
+protected static string $chartId = 'blogPostsChart';
+```
+
+## Making a widget collapsible
+
+You may set a widget to be collapsible:
+
+```php
+protected static bool $isCollapsible = true;
+```
+
+You can also use the `isCollapsible()` method:
+
+```php
+protected function isCollapsible(): bool
+{
+    return true;
+}
+```
+
+## Setting a widget height
+
+By default, the widget height is set to `300px`. You may set a custom height:
+
+```php
+protected static ?int $contentHeight = 400; //px
+```
+
+Optionally, you can use the `getContentHeight()` method.
+
+```php
+protected function getContentHeight(): ?int
+{
+    return 400;
+}
+```
+
+## Setting a widget footer
+
+You may set a widget footer:
+
+```php
+protected static ?string $footer = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.';
+```
+
+You can also use the `getFooter()` method:
+
+Custom view:
+
+```php
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
+
+protected function getFooter(): null|string|Htmlable|View
+{
+    return view('custom-footer', ['text' => 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.']);
+}
+```
+
+```html
+<!--resources/views/custom-footer.blade.php-->
+<div>
+    <p class="text-danger-500">{{ $text }}</p>
+</div>
+```
+
+Html string:
+
+```php
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
+protected function getFooter(): null|string|Htmlable|View
+{
+    return new HtmlString('<p class="text-danger-500">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>');
+}
+```
+
+## Hiding header content
+
+You can hide header content by **NOT** providing these
+
+- $heading
+- getHeading()
+- $subheading
+- getSubheading()
+- getOptions()
+
+## Filtering chart data
+
+You can set up chart filters to change the data shown on chart. Commonly, this is used to change the time period that
+chart data is rendered for.
+
+### Filter schema
+
+You may use components from the [Schemas](https://filamentphp.com/docs/4.x/schemas/overview#available-components) to
+create custom filters.
+You need to use `HasFiltersSchema` trait and implement the `filtersSchema()` method to define the filter form schema:
+
+
+```php
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
+use Filament\Widgets\ChartWidget\Concerns\HasFiltersSchema;  
+use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
+
+class BlogPostsChart extends PlotlyWidget 
+{
+    use HasFiltersSchema;
+    
+    public function filtersSchema(Schema $schema): Schema
+    {
+        return $schema->components([
+            TextInput::make('title')
+                ->default('Blog Posts Chart'),
+                
+            DatePicker::make('date_start')  
+                ->default('2025-07-01'),
+    
+            DatePicker::make('date_end')
+                ->default('2025-07-31'),
+        ]);
+    }
+    
+    /**
+    * Use this method to update the chart options when the filter form is submitted.
+    */
+    public function updatedInteractsWithSchemas(string $statePath): void
+    {
+        $this->updateOptions();
+    }
+}
+```
+
+The data from the custom filter is available in the `$this->filters` array. You can use the active filter values within
+your `getChartData()` method:
+
+```php
+protected function getChartData(): array
+{
+    $title = $this->filters['title'];
+    $dateStart = $this->filters['date_start'];
+    $dateEnd = $this->filters['date_end'];
+
+    return [
+        //chart options
+    ];
+}
+```
+
+### Single select
+
+To set a default filter value, set the `$filter` property:
+
+```php
+public ?string $filter = 'today';
+```
+
+Then, define the `getFilters()` method to return an array of values and labels for your filter:
+
+```php
+protected function getFilters(): ?array
+{
+    return [
+        'today' => 'Today',
+        'week' => 'Last week',
+        'month' => 'Last month',
+        'year' => 'This year',
+    ];
+}
+```
+
+You can use the active filter value within your `getOptions()` method:
+
+```php
+protected function getOptions(): array
+{
+    $activeFilter = $this->filter;
+
+    return [
+        //chart options
+    ];
+}
+```
+
+## Live updating (polling)
+
+By default, chart widgets refresh their data every 5 seconds.
+
+To customize this, you may override the `$pollingInterval` property on the class to a new interval:
+
+```php
+protected static ?string $pollingInterval = '10s';
+```
+
+Alternatively, you may disable polling altogether:
+
+```php
+protected static ?string $pollingInterval = null;
+```
+
+## Defer loading
+
+This can be helpful when you have slow queries and you don't want to hold up the entire page load:
+
+```php
+protected static bool $deferLoading = true;
+
+protected function getChartData(): array
+{
+    //showing a loading indicator immediately after the page load
+    if (!$this->readyToLoad) {
+        return [];
+    }
+
+    //slow query
+    sleep(2);
+
+    return [
+        //chart options
+    ];
+}
+```
+
+## Loading indicator
+
+You can change the loading indicator:
+
+```php
+protected static ?string $loadingIndicator = 'Loading...';
+```
+
+You can also use the `getLoadingIndicator()` method:
+
+```php
+use Illuminate\Contracts\View\View;
+protected function getLoadingIndicator(): null|string|View
+{
+    return view('custom-loading-indicator');
+}
+```
+
+```html
+<!--resources/views/custom-loading-indicator.blade.php-->
+<div>
+    <p class="text-danger-500">Loading...</p>
+</div>
+```
+
+## Dark mode
+
+The dark mode is supported and enabled by default.
+
+
+## Publishing views
 
 Optionally, you can publish the views using
 
@@ -36,18 +416,12 @@ Optionally, you can publish the views using
 php artisan vendor:publish --tag="filament-plotly-views"
 ```
 
-This is the contents of the published config file:
+## Publishing translations
 
-```php
-return [
-];
-```
+Optionally, you can publish the translations using:
 
-## Usage
-
-```php
-$filamentPlotly = new Asharif88\FilamentPlotly();
-echo $filamentPlotly->echoPhrase('Hello, Ahmad SHARIF!');
+```bash
+php artisan vendor:publish --tag=filament-plotly-translations
 ```
 
 ## Testing
@@ -66,7 +440,7 @@ Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
 ## Security Vulnerabilities
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+Please review [our security policy](.github/SECURITY.md) on how to report security vulnerabilities.
 
 ## Credits
 

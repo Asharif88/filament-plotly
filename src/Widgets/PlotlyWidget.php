@@ -3,6 +3,7 @@
 namespace Asharif88\FilamentPlotly\Widgets;
 
 use Asharif88\FilamentPlotly\Concerns\CanDeferLoading;
+use Asharif88\FilamentPlotly\Concerns\CanFilter;
 use Asharif88\FilamentPlotly\Concerns\HasContentHeight;
 use Asharif88\FilamentPlotly\Concerns\HasFooter;
 use Asharif88\FilamentPlotly\Concerns\HasHeader;
@@ -12,12 +13,12 @@ use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Widgets\Concerns\CanPoll;
 use Filament\Widgets\Widget;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
 
 class PlotlyWidget extends Widget implements HasSchemas
 {
     use CanDeferLoading;
-
-    // use CanFilter;
+    use CanFilter;
     use CanPoll;
     use HasContentHeight;
     use HasFooter;
@@ -30,8 +31,6 @@ class PlotlyWidget extends Widget implements HasSchemas
     // @phpstan-ignore-next-line
     protected string $view = 'filament-plotly::widgets.plotly-widget';
 
-    public ?array $options = null;
-
     public ?array $chartData = null;
 
     public ?array $chartConfig = null;
@@ -40,11 +39,10 @@ class PlotlyWidget extends Widget implements HasSchemas
 
     public function mount(): void
     {
-        //        if (method_exists($this, 'getFiltersSchema')) {
-        //            $this->getFiltersSchema()->fill();
-        //        }
+        if (method_exists($this, 'getFiltersSchema')) {
+            $this->getFiltersSchema()->fill();
+        }
 
-        $this->options     = $this->getOptions();
         $this->chartData   = $this->getChartData();
         $this->chartConfig = $this->getChartConfig();
         $this->chartLayout = $this->getChartLayout();
@@ -64,16 +62,6 @@ class PlotlyWidget extends Widget implements HasSchemas
     protected function getChartId(): ?string
     {
         return static::$chartId ?? 'plotly_' . Str::random(10);
-    }
-
-    /**
-     * Returns an array of chart options for displaying a line chart of customer data.
-     *
-     * @return array Array of chart options
-     */
-    protected function getOptions(): array
-    {
-        return [];
     }
 
     protected function getChartData(): array
@@ -96,10 +84,9 @@ class PlotlyWidget extends Widget implements HasSchemas
         if ($this->chartData !== $this->getChartData()) {
 
             $this->chartData = $this->getChartData();
-
             if (! $this->dropdownOpen) {
                 $this
-                    ->dispatch('updateOptions', options: $this->options)
+                    ->dispatch('updateOptions', options: $this->chartData)
                     ->self();
             }
         }

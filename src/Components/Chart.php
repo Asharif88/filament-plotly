@@ -8,7 +8,6 @@ class Chart extends Component
 {
     public function __construct(
         public $chartId,
-        //        public $chartOptions,
         public $chartData,
         public $chartLayout,
         public $chartConfig,
@@ -17,7 +16,6 @@ class Chart extends Component
         public $loadingIndicator,
         public $deferLoading,
         public $readyToLoad,
-        //        public $extraJsOptions
     ) {}
 
     /**

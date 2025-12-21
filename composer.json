@@ -2,13 +2,13 @@
     "name": "asharif88/filament-plotly",
     "description": "Inspired by https://filamentphp.com/plugins/leandrocfe-apex-charts & https://filamentphp.com/plugins/elemind-echarts this plugin delivers plotly.js integration for Filament.",
     "keywords": [
-        "Ahmad SHARIF",
-        "Asharif88",
         "laravel",
         "filamentphp",
         "Plotly.js",
         "Filament Widgets",
-        "filament-plotly"
+        "filament-plotly",
+        "Ahmad SHARIF",
+        "Asharif88"
     ],
     "homepage": "https://github.com/asharif88/filament-plotly",
     "support": {
@@ -39,7 +39,6 @@
     "autoload": {
         "psr-4": {
             "Asharif88\\FilamentPlotly\\": "src/",
-            "Asharif88\\FilamentPlotly\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
@@ -50,8 +49,7 @@
     "scripts": {
         "post-autoload-dump": "@php ./vendor/bin/testbench package:discover --ansi",
         "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
+        "test": "vendor/bin/phpunit",
         "format": "vendor/bin/pint"
     },
     "config": {

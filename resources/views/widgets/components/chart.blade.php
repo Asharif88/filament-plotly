@@ -8,7 +8,6 @@
     'loadingIndicator',
     'deferLoading',
     'readyToLoad',
-//    'extraJsOptions',
 ])
 
 <div
@@ -33,7 +32,7 @@
 			 x-init="$watch('dropdownOpen', value => $wire.dropdownOpen = value)">
 		</div>
 	@else
-		<div class="filament-echarts-chart-loading-indicator m-auto">
+		<div class="filament-plotly-chart-loading-indicator m-auto">
 			@if ($loadingIndicator)
 				{!! $loadingIndicator !!}
 			@else

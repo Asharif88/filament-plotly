@@ -55,14 +55,7 @@ class FilamentPlotlyCommand extends Command
             ->trim(' ')
             ->replace('/', '\\');
 
-        $widgetClass = (string) str($widget)->afterLast('\\');
-
-        $widgetNamespace = str($widget)->contains('\\') ?
-            (string) str($widget)->beforeLast('\\') :
-            '';
-
-        $resource      = null;
-        $resourceClass = null;
+        $resource = null;
 
         if (class_exists(Resource::class)) {
             $resourceInput = text(
@@ -81,9 +74,6 @@ class FilamentPlotlyCommand extends Command
                 if (! str($resource)->endsWith('Resource')) {
                     $resource .= 'Resource';
                 }
-
-                $resourceClass = (string) str($resource)
-                    ->afterLast('\\');
             }
         }
 
