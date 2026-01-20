@@ -8,12 +8,14 @@
     'loadingIndicator',
     'deferLoading',
     'readyToLoad',
+    'beforeContent',
 ])
 
 <div
 		{!! $deferLoading ? ' wire:init="loadWidget" ' : '' !!}
 		class="flex items-center justify-center filament-plotly-chart"
 >
+	<x-filament-plotly::before :beforeContent="$beforeContent" />
 	@if ($readyToLoad)
 		<div class="w-full filament-plotly-chart-container"
 			 x-ignore x-load

@@ -2,6 +2,7 @@
 	$plugin = (function_exists('filament') && filament()->isServing()) ? \Asharif88\FilamentPlotly\FilamentPlotlyPlugin::get() : null;
 	$heading = $this->getHeading();
 	$subheading = $this->getSubheading();
+	$beforeContent = $this->getBeforeContent();
 	$filters = $this->getFilters();
 	$isCollapsible = $this->isCollapsible();
 	$width = $this->getFilterFormWidth();
@@ -75,6 +76,7 @@
 					:$loadingIndicator
 					:$deferLoading
 					:$readyToLoad
+					:$beforeContent
 			/>
 
 			@if ($footer)

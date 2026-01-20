@@ -4,6 +4,7 @@ namespace Asharif88\FilamentPlotly\Widgets;
 
 use Asharif88\FilamentPlotly\Concerns\CanDeferLoading;
 use Asharif88\FilamentPlotly\Concerns\CanFilter;
+use Asharif88\FilamentPlotly\Concerns\HasBeforeContent;
 use Asharif88\FilamentPlotly\Concerns\HasContentHeight;
 use Asharif88\FilamentPlotly\Concerns\HasFooter;
 use Asharif88\FilamentPlotly\Concerns\HasHeader;
@@ -20,6 +21,7 @@ class PlotlyWidget extends Widget implements HasSchemas
     use CanDeferLoading;
     use CanFilter;
     use CanPoll;
+    use HasBeforeContent;
     use HasContentHeight;
     use HasFooter;
     use HasHeader;

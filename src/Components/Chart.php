@@ -16,6 +16,7 @@ class Chart extends Component
         public $loadingIndicator,
         public $deferLoading,
         public $readyToLoad,
+        public $beforeContent,
     ) {}
 
     /**

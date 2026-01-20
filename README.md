@@ -149,6 +149,17 @@ protected static ?string $subheading = 'This is a subheading';
 
 Optionally, you can use the `getSubheading()` method.
 
+## Adding custom content
+
+You can add custom content before chart within the widget container using the `getbeforeContent()` method.
+
+```php
+public function getBeforeContent(): null|string|Htmlable|View
+{
+    return '...';
+}
+```
+
 ## Setting a chart id
 
 You may set a chart id:

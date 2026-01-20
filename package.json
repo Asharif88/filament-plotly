@@ -16,7 +16,7 @@
         "prettier": "^2.7.1"
     },
     "dependencies": {
-        "plotly.js-dist": "^3.3.0",
+        "plotly.js-dist": "^3.3.1",
         "lodash.merge": "^4.6.2"
     }
 }
