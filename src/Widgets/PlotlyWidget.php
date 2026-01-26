@@ -11,6 +11,7 @@ use Asharif88\FilamentPlotly\Concerns\HasHeader;
 use Asharif88\FilamentPlotly\Concerns\HasLoadingIndicator;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Support\Enums\Alignment;
 use Filament\Widgets\Concerns\CanPoll;
 use Filament\Widgets\Widget;
 use Illuminate\Contracts\View\View;
@@ -81,14 +82,48 @@ class PlotlyWidget extends Widget implements HasSchemas
         return [];
     }
 
-    public function updateOptions(): void
+    /**
+     * Return header actions for the widget. Override in your widget to provide actions.
+     * Should return an array of Filament\Actions\Action (and/or ActionGroup) instances.
+     */
+    protected function getHeaderActions(): array
+    {
+        return [];
+    }
+
+    /**
+     * Return optional alignment for header actions. Override to change alignment.
+     */
+    protected function getHeaderActionsAlignment(): ?Alignment
+    {
+        return null;
+    }
+
+    /**
+     * Return footer actions for the widget. Override in your widget to provide actions.
+     * Should return an array of Filament\Actions\Action (and/or ActionGroup) instances.
+     */
+    protected function getFooterActions(): array
+    {
+        return [];
+    }
+
+    /**
+     * Return optional alignment for footer actions. Override to change alignment.
+     */
+    protected function getFooterActionsAlignment(): ?Alignment
+    {
+        return null;
+    }
+
+    public function updateChartData(): void
     {
         if ($this->chartData !== $this->getChartData()) {
 
             $this->chartData = $this->getChartData();
             if (! $this->dropdownOpen) {
                 $this
-                    ->dispatch('updateOptions', options: $this->chartData)
+                    ->dispatch('updateChartData', chartData: $this->chartData)
                     ->self();
             }
         }

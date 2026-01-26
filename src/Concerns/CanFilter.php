@@ -30,7 +30,7 @@ trait CanFilter
      */
     public function updatedFilter(): void
     {
-        $this->dispatch('updateOptions', options: $this->getChartData())
+        $this->dispatch('updateChartData', chartData: $this->getChartData())
             ->self();
     }
 
@@ -41,7 +41,7 @@ trait CanFilter
     {
         $this->form->validate();
 
-        $this->dispatch('updateOptions', options: $this->getChartData())
+        $this->dispatch('updateChartData', chartData: $this->getChartData())
             ->self();
 
         $this->dispatch('plotly-dropdown', open: false);
@@ -55,7 +55,7 @@ trait CanFilter
         $this->form->fill();
         $this->form->validate();
 
-        $this->dispatch('updateOptions', options: $this->getChartData())
+        $this->dispatch('updateChartData', chartData: $this->getChartData())
             ->self();
 
         $this->dispatch('plotly-dropdown', open: false);

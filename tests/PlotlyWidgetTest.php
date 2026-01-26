@@ -113,7 +113,7 @@ final class PlotlyWidgetTest extends TestCase
             'Get Chart Data' => ['getChartData'],
             'Get Chart Layout' => ['getChartLayout'],
             'Get Chart Config' => ['getChartConfig'],
-            'Update options' => ['updateOptions'],
+            'Update options' => ['updateChartData'],
         ];
     }
 }

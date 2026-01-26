@@ -30,7 +30,7 @@
 				 style="position: relative; overflow:hidden;{{ 'height: '.$contentHeight.'px;' }}">
 			</div>
 		</div>
-		<div {!! $pollingInterval ? 'wire:poll.' . $pollingInterval . '="updateOptions"' : '' !!} x-data="{}"
+		<div {!! $pollingInterval ? 'wire:poll.' . $pollingInterval . '="updateChartData"' : '' !!} x-data="{}"
 			 x-init="$watch('dropdownOpen', value => $wire.dropdownOpen = value)">
 		</div>
 	@else

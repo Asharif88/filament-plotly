@@ -1,5 +1,4 @@
 import * as Plotly from 'plotly.js-dist'
-import merge from 'lodash.merge'
 export default function plotly({
 								   chartData,
 								   chartLayout,
@@ -15,10 +14,17 @@ export default function plotly({
 			this.renderChart();
 
 			// Re-render if Livewire updates the data
-			this.$wire.on('updateOptions', ({options}) => {
-				this.chartData = merge(this.chartData, options)
+			this.$wire.on('updateChartData', ({chartData}) => {
+				this.chartData = chartData;
 				this.updateChart(this.chartData);
 			})
+
+			Alpine.effect(() => {
+				this.$nextTick(() => {
+					this.updateChart(this.chartData);
+				})
+			})
+
 			// Resize chart on window resize
 			window.addEventListener('resize', () => Plotly.Plots.resize(
 				document.querySelector(this.chartId)
@@ -41,10 +47,10 @@ export default function plotly({
 				);
 			}
 		},
-		updateChart(options) {
-			Plotly.update(
+		updateChart(chartData) {
+			Plotly.react(
 				document.querySelector(this.chartId),
-				options,
+				chartData,
 				this.chartLayout,
 				this.chartConfig
 			);

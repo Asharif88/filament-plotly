@@ -15,6 +15,7 @@ Inspired by [Leandro Ferreira’s Apex Charts plugin](https://filamentphp.com/pl
   - [Making a widget collapsible](#making-a-widget-collapsible)
   - [Setting a widget height](#setting-a-widget-height)
   - [Setting a widget footer](#setting-a-widget-footer)
+  - [Header & Footer Actions](#header--footer-actions)
   - [Hiding header content](#hiding-header-content)
   - [Filtering chart data](#filtering-chart-data)
   - [Live updating (polling)](#live-updating-polling)
@@ -241,6 +242,66 @@ protected function getFooter(): null|string|Htmlable|View
     return new HtmlString('<p class="text-danger-500">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>');
 }
 ```
+
+## Header & Footer Actions
+
+You can register Filament actions to appear in the widget header or footer. Override `getHeaderActions()` / `getFooterActions()` on your widget to return an array of `Filament\Actions\Action` (or `ActionGroup`) instances. These actions are rendered by Filament's actions component and respect alignment settings.
+
+Example — simple header actions:
+
+```php
+use Filament\Actions\Action;
+use Filament\Support\Enums\Alignment;
+
+protected function getHeaderActions(): array
+{
+    return [
+        Action::make('refresh')
+            ->label('Refresh')
+            ->icon('heroicon-o-refresh')
+            ->action('updateOptions')
+            ->button(),
+
+        Action::make('download')
+            ->label('Download')
+            ->url(route('reports.export'))
+            ->color('secondary'),
+    ];
+}
+
+protected function getHeaderActionsAlignment(): ?Alignment
+{
+    return Alignment::End; // align header actions to the right
+}
+```
+
+Example — footer actions:
+
+```php
+use Filament\Actions\Action;
+use Filament\Support\Enums\Alignment;
+
+protected function getFooterActions(): array
+{
+    return [
+        Action::make('details')
+            ->label('Details')
+            ->url(route('reports.details'))
+            ->button(),
+    ];
+}
+
+protected function getFooterActionsAlignment(): ?Alignment
+{
+    return Alignment::Center; // center footer actions
+}
+```
+
+Notes:
+
+- You may return `ActionGroup` instances if you need grouped or dropdown actions.
+- Header actions are rendered next to any filter controls defined on the widget.
+- Footer actions render above the footer content returned by `getFooter()`.
 
 ## Hiding header content
 
