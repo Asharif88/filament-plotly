@@ -11,11 +11,13 @@ export default function plotly({
 		chartConfig,
 		chartId,
 		init() {
+			this.chartData = this.parseData(chartData);
+
 			this.renderChart();
 
 			// Re-render if Livewire updates the data
 			this.$wire.on('updateChartData', ({chartData}) => {
-				this.chartData = chartData;
+				this.chartData = this.parseData(chartData);
 				this.updateChart(this.chartData);
 			})
 
@@ -54,6 +56,32 @@ export default function plotly({
 				this.chartLayout,
 				this.chartConfig
 			);
-		}
+		},
+		tryParse(value,key) {
+			if (typeof value !== 'string') return value;
+
+			// Quick check: does it look like JSON?
+			if (!(value.startsWith('{') || value.startsWith('['))) return value;
+
+			try {
+				return JSON.parse(value);
+			} catch {
+				console.log('unable to parse JSON for key: "' + key + '" -- already type: ' + (typeof value));
+				return value; // Not valid JSON, return as is
+			}
+		},
+		parseData(collection) {
+			return collection.map(item => {
+				const result = { ...item };
+				for (const field of Object.keys(item)) {
+					if (Array.isArray(result[field])) {
+						result[field] = result[field].map(element => this.tryParse(element, field));
+					} else {
+						result[field] = this.tryParse(result[field], field);
+					}
+				}
+				return result;
+			});
+		},
 	}
 }
