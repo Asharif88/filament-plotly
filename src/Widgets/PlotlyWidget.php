@@ -6,10 +6,12 @@ use Asharif88\FilamentPlotly\Concerns\CanDeferLoading;
 use Asharif88\FilamentPlotly\Concerns\CanFilter;
 use Asharif88\FilamentPlotly\Concerns\HasBeforeContent;
 use Asharif88\FilamentPlotly\Concerns\HasChartOverlay;
+use Asharif88\FilamentPlotly\Concerns\HasChartTheme;
 use Asharif88\FilamentPlotly\Concerns\HasContentHeight;
 use Asharif88\FilamentPlotly\Concerns\HasFooter;
 use Asharif88\FilamentPlotly\Concerns\HasHeader;
 use Asharif88\FilamentPlotly\Concerns\HasLoadingIndicator;
+use Asharif88\FilamentPlotly\Concerns\HasStreamingSupport;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Support\Enums\Alignment;
@@ -26,10 +28,12 @@ class PlotlyWidget extends Widget implements HasSchemas
     use CanPoll;
     use HasBeforeContent;
     use HasChartOverlay;
+    use HasChartTheme;
     use HasContentHeight;
     use HasFooter;
     use HasHeader;
     use HasLoadingIndicator;
+    use HasStreamingSupport;
     use InteractsWithSchemas;
 
     protected static ?string $chartId = null;
