@@ -1,0 +1,2 @@
+@props(['chartOverlay'])
+{{ $chartOverlay }}
