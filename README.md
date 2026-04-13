@@ -647,22 +647,22 @@ Your server-side stream must emit JSON messages in this format:
 use Asharif88\FilamentPlotly\Concerns\HasStreamingSupport;
 use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
 
-class LiveSensorChart extends PlotlyWidget
+class LiveDataChart extends PlotlyWidget
 {
     use HasStreamingSupport;
 
-    public int $sensorId = 1;
+    public int $sourceId = 1;
 
     // Return null to disable streaming (e.g. before required state is set)
     protected function getStreamUrl(): ?string
     {
-        return url('/stream/sensor');
+        return url('/stream/data');
     }
 
     // Query-string params appended to the URL on both initial load and every restart
     protected function getStreamParams(): array
     {
-        return ['sensor_id' => $this->sensorId];
+        return ['source_id' => $this->sourceId];
     }
 
     // JS body called for each data message. `d` = parsed JSON, `el` = chart DOM element.
@@ -688,48 +688,8 @@ class LiveSensorChart extends PlotlyWidget
 }
 ```
 
-### Restarting the stream on filter changes
 
-Call `$this->dispatchStreamRestart()` from any `#[On(...)]` handler that changes widget state. The library closes the current `EventSource` and opens a new one using the return value of `getStreamParams()` at that moment.
-
-```php
-use Livewire\Attributes\On;
-
-public ?int $sensorId = null;
-public ?string $dateFrom = null;
-public ?string $dateTo   = null;
-
-#[On('sensorSelected')]
-public function onSensorSelected(int $sensorId): void
-{
-    $this->sensorId = $sensorId;
-    $this->dispatchStreamRestart();
-}
-
-#[On('dateRangeChanged')]
-public function onDateRangeChanged(?string $from, ?string $to): void
-{
-    $this->dateFrom = $from;
-    $this->dateTo   = $to;
-    $this->dispatchStreamRestart();
-}
-
-protected function getStreamUrl(): ?string
-{
-    return $this->sensorId ? url('/stream/sensor') : null;
-}
-
-protected function getStreamParams(): array
-{
-    return [
-        'sensor_id' => $this->sensorId,
-        'date_from' => $this->dateFrom ?? '',
-        'date_to'   => $this->dateTo   ?? '',
-    ];
-}
-```
-
-> Returning `null` from `getStreamUrl()` disables streaming entirely — useful when required state (e.g. a selected sensor) has not been set yet.
+> Returning `null` from `getStreamUrl()` disables streaming entirely — useful when required state (e.g. a selected source) has not been set yet.
 
 ### Full example with theme and click events
 
@@ -741,28 +701,25 @@ use Asharif88\FilamentPlotly\Concerns\HasStreamingSupport;
 use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
 use Livewire\Attributes\On;
 
-class PeakToPeakChart extends PlotlyWidget
+class DailyVariationChart extends PlotlyWidget
 {
     use HasStreamingSupport;
     use HasChartTheme;
 
     protected ?string $pollingInterval = null;
-    protected static ?string $chartId  = 'peakToPeakChart';
+    protected static ?string $chartId  = 'dailyVariationChart';
     protected static int $contentHeight = 660;
 
-    public ?int $sensorId  = null;
-    public ?string $axis   = 'x';
+    public ?int $sourceId  = null;
     public ?string $dateFrom = null;
     public ?string $dateTo   = null;
 
     // --- Filter handlers -----------------------------------------------------
 
-    #[On('sensorSelected')]
-    public function onSensorSelected(int $sensorId, string $axis = 'x'): void
+    #[On('sourceSelected')]
+    public function onSourceSelected(int $sourceId): void
     {
-        $this->sensorId = $sensorId;
-        $this->axis     = $axis;
-        $this->dispatchStreamRestart();
+        $this->sourceId = $sourceId;
     }
 
     #[On('dateRangeChanged')]
@@ -770,7 +727,6 @@ class PeakToPeakChart extends PlotlyWidget
     {
         $this->dateFrom = $from;
         $this->dateTo   = $to;
-        $this->dispatchStreamRestart();
     }
 
     // --- Chart data ----------------------------------------------------------
@@ -792,7 +748,7 @@ class PeakToPeakChart extends PlotlyWidget
     protected function getChartLayout(): array
     {
         return [
-            'title'      => ['text' => 'Peak-to-Peak per day'],
+            'title'      => ['text' => 'Variations per day'],
             'yaxis'      => ['type' => 'category', 'autorange' => 'reversed'],
             'autosize'   => true,
             'showlegend' => false,
@@ -801,34 +757,33 @@ class PeakToPeakChart extends PlotlyWidget
 
     protected function getChartConfig(): array
     {
-        return ['responsive' => true, 'displaylogo' => false];
+        return ['responsive' => true];
     }
 
     // --- HasStreamingSupport -------------------------------------------------
 
     protected function getStreamUrl(): ?string
     {
-        return $this->sensorId ? url('/stream/p2p') : null;
+        return $this->sourceId ? url('/stream/data') : null;
     }
 
     protected function getStreamParams(): array
     {
         return [
-            'sensor_id' => $this->sensorId,
-            'axis'      => $this->axis,
+            'source_id' => $this->sourceId,
             'date_from' => $this->dateFrom ?? '',
             'date_to'   => $this->dateTo   ?? '',
         ];
     }
 
-    // Expected message shape: { x: <date>, y: <float>, captureId: <int> }
+    // Expected message shape: { x: <date>, y: <float>, payloadId: <int> }
     protected function getOnStreamMessageScript(): ?string
     {
         return <<<'JS'
             Plotly.extendTraces(el, {
                 x:          [[d.x]],
                 y:          [[d.y]],
-                customdata: [[d.captureId]],
+                customdata: [[d.payloadId]],
             }, [0]);
         JS;
     }
@@ -862,10 +817,10 @@ class PeakToPeakChart extends PlotlyWidget
 
     public function onChartClick(array $data): void
     {
-        $captureId = $data['points'][0]['customdata'] ?? null;
+        $payloadId = $data['points'][0]['customdata'] ?? null;
 
-        if ($captureId !== null) {
-            $this->dispatch('captureSelected', captureId: (int) $captureId);
+        if ($payloadId !== null) {
+            $this->dispatch('payloadSelected', payloadId: (int) $payloadId);
         }
     }
 }
