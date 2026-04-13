@@ -2,6 +2,15 @@
 
 All notable changes to `filament-plotly` will be documented in this file.
 
+## Release 1.2.0 - 2026-04-13
+
+- Bumping Plotly.js to 3.5
+- Adding streaming support
+- Adding Chart theme support
+- Adding support for integrating Plotly events with Livewire
+- Adding Chart overlay functionality
+- Adding Chart onready script support
+
 ## Release 1.1.2 - 2026-01-26
 
 - bugfix: filter-form component not cacheable
