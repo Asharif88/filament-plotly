@@ -17,6 +17,12 @@ class Chart extends Component
         public $deferLoading,
         public $readyToLoad,
         public $beforeContent,
+        public $onChartReadyScript = null,
+        public $chartOverlay = null,
+        public $streamingLayoutPatch = [],
+        public $darkThemeLayout = [],
+        public $lightThemeLayout = [],
+        public $plotlyEventListeners = [],
     ) {}
 
     /**

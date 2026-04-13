@@ -16,6 +16,6 @@
         "prettier": "^2.7.1"
     },
     "dependencies": {
-        "plotly.js-dist": "^3.3.1"
+        "plotly.js-dist": "^3.5.0"
     }
 }

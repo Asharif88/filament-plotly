@@ -21,6 +21,12 @@ Inspired by [Leandro Ferreira’s Apex Charts plugin](https://filamentphp.com/pl
   - [Live updating (polling)](#live-updating-polling)
   - [Defer loading](#defer-loading)
   - [Loading indicator](#loading-indicator)
+  - [Chart overlay](#chart-overlay)
+  - [Post-init JS hook](#post-init-js-hook)
+  - [Dark / light theme sync](#dark--light-theme-sync)
+  - [Plotly event listeners](#plotly-event-listeners)
+  - [Streaming support](#streaming-support)
+  - [Streaming layout patch](#streaming-layout-patch)
 - [Changelog](#changelog)
 - [Contributing](#contributing)
 - [Credits](#credits)
@@ -475,10 +481,419 @@ protected function getLoadingIndicator(): null|string|View
 </div>
 ```
 
+## Chart overlay
+
+Use `getChartOverlay()` to render HTML **inside** the chart container — directly on top of the Plotly canvas. This is the right place for progress bars, custom annotation panels, and loader overlays, because the content sits naturally inside the chart div without requiring `document.getElementById` or absolute-positioning tricks.
+
+```php
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
+
+protected function getChartOverlay(): null|string|Htmlable|View
+{
+    return view('charts.my-overlay');
+}
+```
+
+```html
+{{-- resources/views/charts/my-overlay.blade.php --}}
+<div id="stream-progress"
+     style="position:absolute;top:0;left:0;right:0;display:none"
+     class="h-1 bg-primary-500">
+</div>
+```
+
+> The overlay is rendered inside a `wire:ignore` container, so it is set once on mount and then controlled by JavaScript. It will not be re-rendered by Livewire on subsequent updates.
+
+## Post-init JS hook
+
+Override `getOnChartReadyScript()` to run plain JavaScript the moment the Plotly chart is fully initialised. Inside the script, `el` refers to the chart DOM element.
+
+```php
+protected function getOnChartReadyScript(): ?string
+{
+    return <<<'JS'
+        // `el` is the Plotly chart DOM element
+        el.on('plotly_afterplot', () => {
+            document.getElementById('stream-progress').style.display = 'none';
+        });
+    JS;
+}
+```
+
+## Dark / light theme sync
+
+Use the `HasChartTheme` concern to keep Plotly's visual theme in sync with Filament's dark/light mode automatically. The Alpine component watches the `dark` class on `<html>` via a `MutationObserver` and calls `Plotly.relayout()` whenever the mode changes — no `getFooter()` workaround needed.
+
+```php
+use Asharif88\FilamentPlotly\Concerns\HasChartTheme;
+use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
+
+class RevenueChart extends PlotlyWidget
+{
+    use HasChartTheme;
+
+    protected function getDarkThemeLayout(): array
+    {
+        return [
+            'paper_bgcolor' => '#1e293b',
+            'plot_bgcolor'  => '#1e293b',
+            'font'          => ['color' => '#f1f5f9'],
+        ];
+    }
+
+    protected function getLightThemeLayout(): array
+    {
+        return [
+            'paper_bgcolor' => '#ffffff',
+            'plot_bgcolor'  => '#ffffff',
+            'font'          => ['color' => '#0f172a'],
+        ];
+    }
+}
+```
+
+The layout properties returned by each method are merged into the live chart layout via `Plotly.relayout()`. Return any valid [Plotly layout](https://plotly.com/javascript/reference/layout/) keys.
+
+## Plotly event listeners
+
+Override `getPlotlyEventListeners()` to map Plotly JS events to public methods on your widget. When a mapped event fires, two things happen:
+
+1. The mapped method is called on this widget with a serialised payload.
+2. A window-level Alpine event `plotly:{event}` is dispatched so that **sibling Livewire components** (a table, a slide-over) can also react without coupling to the chart widget.
+
+```php
+protected function getPlotlyEventListeners(): array
+{
+    return [
+        'plotly_click'    => 'onChartClick',
+        'plotly_selected' => 'onChartSelected',
+    ];
+}
+
+public function onChartClick(array $data): void
+{
+    $recordId = $data['points'][0]['customdata'] ?? null;
+
+    $this->dispatch('open-record', id: $recordId);
+}
+
+public function onChartSelected(array $data): void
+{
+    $ids = collect($data['points'])->pluck('customdata')->filter()->all();
+
+    $this->dispatch('filter-table', ids: $ids);
+}
+```
+
+Store the record's primary key in `customdata` when building trace data — that's the standard Plotly mechanism for carrying arbitrary metadata per point:
+
+```php
+protected function getChartData(): array
+{
+    $rows = Order::query()->get();
+
+    return [[
+        'x'          => $rows->pluck('created_at'),
+        'y'          => $rows->pluck('total'),
+        'customdata' => $rows->pluck('id'),   // ← record IDs travel with each point
+        'type'       => 'scatter',
+        'mode'       => 'markers',
+    ]];
+}
+```
+
+To react from a **separate** Livewire component (e.g. a `ListOrders` resource page), listen for the broadcasted window event:
+
+```php
+use Livewire\Attributes\On;
+
+#[On('plotly:plotly_click')]
+public function handleChartClick(array $data): void
+{
+    $this->tableFilters['id'] = $data['points'][0]['customdata'];
+    $this->resetTable();
+}
+```
+
+### Supported events and payload shapes
+
+| Event | Payload fields |
+|---|---|
+| `plotly_click`, `plotly_hover`, `plotly_unhover`, `plotly_doubleclick` | `points[]` → `{curveNumber, pointIndex, x, y, z, text, customdata, traceName}` |
+| `plotly_selected`, `plotly_deselect` | `points[]` + `range`, `lassoPoints` |
+| `plotly_legendclick`, `plotly_legenddoubleclick` | `{curveNumber, traceName}` |
+| `plotly_relayout`, `plotly_restyle`, `plotly_autosize` | raw layout/style change object |
+
+DOM nodes, full trace objects, and axis definitions are stripped before serialisation — only safe, JSON-friendly values reach Livewire.
+
+## Streaming support
+
+The `HasStreamingSupport` concern replaces the traditional `getFooter()` SSE boilerplate with a small set of override methods. The library owns the `EventSource` lifecycle, the progress overlay, and component cleanup — your widget only declares what is domain-specific.
+
+### SSE message protocol
+
+Your server-side stream must emit JSON messages in this format:
+
+| Message | Meaning |
+|---|---|
+| `{"init": true, "total": N}` | Stream is starting; `N` is the total number of data messages expected (used for the progress bar). |
+| `{"done": true}` | Stream finished. The library closes the `EventSource` and removes the progress overlay. |
+| `{ ...data }` | A data point. Forwarded to `getOnStreamMessageScript()`. |
+
+### Basic example
+
+```php
+use Asharif88\FilamentPlotly\Concerns\HasStreamingSupport;
+use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
+
+class LiveSensorChart extends PlotlyWidget
+{
+    use HasStreamingSupport;
+
+    public int $sensorId = 1;
+
+    // Return null to disable streaming (e.g. before required state is set)
+    protected function getStreamUrl(): ?string
+    {
+        return url('/stream/sensor');
+    }
+
+    // Query-string params appended to the URL on both initial load and every restart
+    protected function getStreamParams(): array
+    {
+        return ['sensor_id' => $this->sensorId];
+    }
+
+    // JS body called for each data message. `d` = parsed JSON, `el` = chart DOM element.
+    // Return null to use the built-in default: Plotly.extendTraces(el, {x:[[d.x]], y:[[d.y]]}, [0])
+    protected function getOnStreamMessageScript(): ?string
+    {
+        return <<<'JS'
+            Plotly.extendTraces(el, { x: [[d.ts]], y: [[d.value]] }, [0]);
+        JS;
+    }
+
+    // JS body called once when {done: true} arrives, after the overlay is removed.
+    // `el` is the chart DOM element. Return null if no post-stream work is needed.
+    protected function getOnStreamDoneScript(): ?string
+    {
+        return null;
+    }
+
+    protected function getChartData(): array
+    {
+        return [['x' => [], 'y' => [], 'type' => 'scatter', 'mode' => 'lines']];
+    }
+}
+```
+
+### Restarting the stream on filter changes
+
+Call `$this->dispatchStreamRestart()` from any `#[On(...)]` handler that changes widget state. The library closes the current `EventSource` and opens a new one using the return value of `getStreamParams()` at that moment.
+
+```php
+use Livewire\Attributes\On;
+
+public ?int $sensorId = null;
+public ?string $dateFrom = null;
+public ?string $dateTo   = null;
+
+#[On('sensorSelected')]
+public function onSensorSelected(int $sensorId): void
+{
+    $this->sensorId = $sensorId;
+    $this->dispatchStreamRestart();
+}
+
+#[On('dateRangeChanged')]
+public function onDateRangeChanged(?string $from, ?string $to): void
+{
+    $this->dateFrom = $from;
+    $this->dateTo   = $to;
+    $this->dispatchStreamRestart();
+}
+
+protected function getStreamUrl(): ?string
+{
+    return $this->sensorId ? url('/stream/sensor') : null;
+}
+
+protected function getStreamParams(): array
+{
+    return [
+        'sensor_id' => $this->sensorId,
+        'date_from' => $this->dateFrom ?? '',
+        'date_to'   => $this->dateTo   ?? '',
+    ];
+}
+```
+
+> Returning `null` from `getStreamUrl()` disables streaming entirely — useful when required state (e.g. a selected sensor) has not been set yet.
+
+### Full example with theme and click events
+
+The following shows `HasStreamingSupport`, `HasChartTheme`, and `getPlotlyEventListeners()` working together, which is the recommended pattern for a production streaming widget:
+
+```php
+use Asharif88\FilamentPlotly\Concerns\HasChartTheme;
+use Asharif88\FilamentPlotly\Concerns\HasStreamingSupport;
+use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
+use Livewire\Attributes\On;
+
+class PeakToPeakChart extends PlotlyWidget
+{
+    use HasStreamingSupport;
+    use HasChartTheme;
+
+    protected ?string $pollingInterval = null;
+    protected static ?string $chartId  = 'peakToPeakChart';
+    protected static int $contentHeight = 660;
+
+    public ?int $sensorId  = null;
+    public ?string $axis   = 'x';
+    public ?string $dateFrom = null;
+    public ?string $dateTo   = null;
+
+    // --- Filter handlers -----------------------------------------------------
+
+    #[On('sensorSelected')]
+    public function onSensorSelected(int $sensorId, string $axis = 'x'): void
+    {
+        $this->sensorId = $sensorId;
+        $this->axis     = $axis;
+        $this->dispatchStreamRestart();
+    }
+
+    #[On('dateRangeChanged')]
+    public function onDateRangeChanged(?string $from, ?string $to): void
+    {
+        $this->dateFrom = $from;
+        $this->dateTo   = $to;
+        $this->dispatchStreamRestart();
+    }
+
+    // --- Chart data ----------------------------------------------------------
+
+    // Starts empty — data is streamed in via extendTraces
+    protected function getChartData(): array
+    {
+        return [[
+            'x'          => [],
+            'y'          => [],
+            'customdata' => [],
+            'mode'       => 'lines+markers',
+            'line'       => ['width' => 2, 'color' => 'orange'],
+            'marker'     => ['size' => 6, 'color' => 'orange'],
+            'showlegend' => false,
+        ]];
+    }
+
+    protected function getChartLayout(): array
+    {
+        return [
+            'title'      => ['text' => 'Peak-to-Peak per day'],
+            'yaxis'      => ['type' => 'category', 'autorange' => 'reversed'],
+            'autosize'   => true,
+            'showlegend' => false,
+        ];
+    }
+
+    protected function getChartConfig(): array
+    {
+        return ['responsive' => true, 'displaylogo' => false];
+    }
+
+    // --- HasStreamingSupport -------------------------------------------------
+
+    protected function getStreamUrl(): ?string
+    {
+        return $this->sensorId ? url('/stream/p2p') : null;
+    }
+
+    protected function getStreamParams(): array
+    {
+        return [
+            'sensor_id' => $this->sensorId,
+            'axis'      => $this->axis,
+            'date_from' => $this->dateFrom ?? '',
+            'date_to'   => $this->dateTo   ?? '',
+        ];
+    }
+
+    // Expected message shape: { x: <date>, y: <float>, captureId: <int> }
+    protected function getOnStreamMessageScript(): ?string
+    {
+        return <<<'JS'
+            Plotly.extendTraces(el, {
+                x:          [[d.x]],
+                y:          [[d.y]],
+                customdata: [[d.captureId]],
+            }, [0]);
+        JS;
+    }
+
+    // --- HasChartTheme — automatic dark/light sync ---------------------------
+
+    protected function getDarkThemeLayout(): array
+    {
+        return [
+            'paper_bgcolor' => '#1e293b',
+            'plot_bgcolor'  => '#1e293b',
+            'font'          => ['color' => '#f1f5f9'],
+        ];
+    }
+
+    protected function getLightThemeLayout(): array
+    {
+        return [
+            'paper_bgcolor' => '#ffffff',
+            'plot_bgcolor'  => '#ffffff',
+            'font'          => ['color' => '#0f172a'],
+        ];
+    }
+
+    // --- Plotly event listeners ----------------------------------------------
+
+    protected function getPlotlyEventListeners(): array
+    {
+        return ['plotly_click' => 'onChartClick'];
+    }
+
+    public function onChartClick(array $data): void
+    {
+        $captureId = $data['points'][0]['customdata'] ?? null;
+
+        if ($captureId !== null) {
+            $this->dispatch('captureSelected', captureId: (int) $captureId);
+        }
+    }
+}
+```
+
+## Streaming layout patch
+
+Override `getStreamingLayoutPatch()` to declare layout properties that must be force-merged into the layout on every stream reset, regardless of what `el.layout` currently holds.
+
+```php
+protected function getStreamingLayoutPatch(): array
+{
+    return [
+        'template' => [
+            'layout' => [
+                'paper_bgcolor' => '#1e293b',
+                'plot_bgcolor'  => '#1e293b',
+            ],
+        ],
+    ];
+}
+```
+
+> **When to use this vs `HasChartTheme`:** If you use `HasChartTheme`, theme properties are tracked in `el.layout` and are automatically preserved across stream resets — you do not need `getStreamingLayoutPatch()` for theme sync. Use `getStreamingLayoutPatch()` when you need to inject layout properties that are not managed by `HasChartTheme`, or when you cannot use that trait.
+
 ## Dark mode
 
-The dark mode is supported and enabled by default.
-
+The dark mode is supported and enabled by default for the container.
 
 ## Publishing views
 
