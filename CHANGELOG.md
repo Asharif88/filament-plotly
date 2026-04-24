@@ -2,6 +2,11 @@
 
 All notable changes to `filament-plotly` will be documented in this file.
 
+## Release 1.2.1 - 2026-04-24
+
+- Allowing modals to be called from within the widget
+- Fixing layout of beforContent
+
 ## Release 1.2.0 - 2026-04-13
 
 - Bumping Plotly.js to 3.5
